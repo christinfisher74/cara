@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cara — Road Trip Mobility</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --slate-green:#5C7A6B;
+    --olive:#8A9A6A;
+    --taupe:#C4B5A0;
+    --charcoal:#3D3D3D;
+    --cream:#F7F4EE;
+    --line:#D9D2C4;
+    --white:#FFFFFF;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  body{
+    font-family:'Inter', sans-serif;
+    background:var(--cream);
+    color:var(--charcoal);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:32px 16px 60px;
+  }
+
+  .app{
+    width:100%;
+    max-width:560px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    margin-bottom:28px;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--slate-green);
+    font-weight:600;
+    margin-bottom:6px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:32px;
+    line-height:1.05;
+    color:var(--charcoal);
+    margin-bottom:8px;
+  }
+  .sub{
+    font-size:14px;
+    color:#6b6b6b;
+    line-height:1.5;
+    max-width:46ch;
+  }
+
+  /* ---------- Route visual ---------- */
+  .route-wrap{
+    margin:28px 0 24px;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px 18px 14px;
+  }
+  .route-label{
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:#999;
+    font-weight:600;
+    margin-bottom:14px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .route{
+    position:relative;
+    display:flex;
+    align-items:center;
+    height:36px;
+    margin-bottom:4px;
+  }
+  .route-track{
+    position:absolute;
+    left:8px; right:8px;
+    height:3px;
+    background:var(--line);
+    border-radius:3px;
+  }
+  .route-progress{
+    position:absolute;
+    left:8px;
+    height:3px;
+    background:var(--slate-green);
+    border-radius:3px;
+    transition:width .5s ease;
+  }
+  .route-stops{
+    position:relative;
+    display:flex;
+    justify-content:space-between;
+    width:100%;
+  }
+  .stop{
+    width:16px; height:16px;
+    border-radius:50%;
+    background:var(--white);
+    border:2.5px solid var(--line);
+    z-index:2;
+    transition:all .3s ease;
+  }
+  .stop.done{
+    background:var(--slate-green);
+    border-color:var(--slate-green);
+  }
+  .stop.active{
+    background:var(--olive);
+    border-color:var(--olive);
+    transform:scale(1.35);
+    box-shadow:0 0 0 4px rgba(138,154,106,0.2);
+  }
+  .stop-icon{
+    text-align:center;
+    font-size:9px;
+    color:#aaa;
+    margin-top:6px;
+  }
+
+  /* ---------- Stage card ---------- */
+  .stage{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:28px 24px 24px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .section-tag{
+    display:inline-block;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    font-weight:700;
+    color:var(--white);
+    background:var(--charcoal);
+    padding:5px 12px;
+    border-radius:20px;
+    margin-bottom:18px;
+  }
+
+  .move-count{
+    font-size:12px;
+    color:#999;
+    font-weight:600;
+    margin-bottom:6px;
+    letter-spacing:0.04em;
+  }
+  .move-name{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:26px;
+    line-height:1.15;
+    margin-bottom:6px;
+    min-height:64px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .move-cue{
+    font-size:13.5px;
+    color:#777;
+    line-height:1.5;
+    max-width:38ch;
+    margin:0 auto 22px;
+    min-height:40px;
+  }
+
+  /* ---------- Timer ring ---------- */
+  .timer-wrap{
+    position:relative;
+    width:188px;
+    height:188px;
+    margin:0 auto 22px;
+  }
+  svg{ transform:rotate(-90deg); }
+  .ring-bg{ fill:none; stroke:var(--line); stroke-width:9; }
+  .ring-fg{
+    fill:none;
+    stroke:var(--slate-green);
+    stroke-width:9;
+    stroke-linecap:round;
+    transition:stroke-dashoffset 1s linear;
+  }
+  .timer-center{
+    position:absolute;
+    top:0; left:0; right:0; bottom:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+  .timer-num{
+    font-family:'Fraunces', serif;
+    font-size:44px;
+    font-weight:600;
+    color:var(--charcoal);
+    line-height:1;
+  }
+  .timer-unit{
+    font-size:11px;
+    color:#999;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-top:4px;
+  }
+
+  /* ---------- Controls ---------- */
+  .controls{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-bottom:6px;
+  }
+  button{
+    font-family:'Inter', sans-serif;
+    border:none;
+    cursor:pointer;
+    font-weight:600;
+    letter-spacing:0.02em;
+    transition:all .15s ease;
+  }
+  .btn-main{
+    background:var(--slate-green);
+    color:var(--white);
+    font-size:14px;
+    padding:13px 30px;
+    border-radius:30px;
+  }
+  .btn-main:hover{ background:#4d6859; }
+  .btn-main:active{ transform:scale(0.97); }
+  .btn-skip{
+    background:var(--white);
+    color:var(--charcoal);
+    border:1.5px solid var(--line);
+    font-size:13px;
+    padding:12px 20px;
+    border-radius:30px;
+  }
+  .btn-skip:hover{ border-color:var(--olive); color:var(--olive); }
+
+  .nav-row{
+    display:flex;
+    justify-content:space-between;
+    margin-top:18px;
+  }
+  .nav-btn{
+    background:none;
+    color:#999;
+    font-size:12.5px;
+    padding:8px;
+  }
+  .nav-btn:hover{ color:var(--charcoal); }
+  .nav-btn:disabled{ opacity:0.3; cursor:default; }
+
+  /* ---------- Complete state ---------- */
+  .complete{
+    text-align:center;
+    padding:40px 20px;
+  }
+  .complete-mark{
+    width:64px; height:64px;
+    border-radius:50%;
+    background:var(--slate-green);
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:28px;
+    margin:0 auto 18px;
+  }
+  .complete h2{
+    font-family:'Fraunces', serif;
+    font-size:24px;
+    margin-bottom:8px;
+  }
+  .complete p{
+    font-size:13.5px;
+    color:#777;
+    margin-bottom:22px;
+  }
+
+  footer{
+    text-align:center;
+    margin-top:30px;
+    font-size:11px;
+    color:#aaa;
+    letter-spacing:0.04em;
+  }
+
+  @media (max-width:420px){
+    h1{ font-size:26px; }
+    .move-name{ font-size:21px; }
+    .timer-wrap{ width:160px; height:160px; }
+    .timer-num{ font-size:36px; }
+  }
+
+  *:focus-visible{
+    outline:2px solid var(--olive);
+    outline-offset:2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="eyebrow">Feminine Strength &amp; Sustainable Energy</div>
+    <h1>Road Trip Mobility</h1>
+    <p class="sub">10–15 minutes, no equipment. Hotel room, rest stop, wherever you land — keep the hips, spine, and shoulders moving so you come back ready to train.</p>
+  </header>
+
+  <div class="route-wrap">
+    <div class="route-label">
+      <span id="routeLabel">Stop 1 of 14</span>
+      <span id="routeSection">Hips &amp; Low Back</span>
+    </div>
+    <div class="route">
+      <div class="route-track"></div>
+      <div class="route-progress" id="routeProgress"></div>
+      <div class="route-stops" id="routeStops"></div>
+    </div>
+  </div>
+
+  <div class="stage" id="stage"></div>
+
+  <footer>Coach Christin Fisher · @christin_fisher</footer>
+</div>
+
+<script>
+const ROUTINE = [
+  // Hips & Low Back
+  {section:"Hips & Low Back", name:"90/90 Hip Switch", cue:"Slow controlled rotation. Keep both sit bones grounded. Breathe out as you switch.", time:40},
+  {section:"Hips & Low Back", name:"Standing Hip Flexor Stretch — Right", cue:"Step into a slight lunge, squeeze the back glute, tuck the pelvis under.", time:30},
+  {section:"Hips & Low Back", name:"Standing Hip Flexor Stretch — Left", cue:"Step into a slight lunge, squeeze the back glute, tuck the pelvis under.", time:30},
+  {section:"Hips & Low Back", name:"Seated Figure-4 — Right", cue:"Ankle on opposite knee, hinge forward gently. Great for car seat tightness.", time:30},
+  {section:"Hips & Low Back", name:"Seated Figure-4 — Left", cue:"Ankle on opposite knee, hinge forward gently. Great for car seat tightness.", time:30},
+  {section:"Hips & Low Back", name:"Cat–Cow", cue:"Full exhale on cat, inhale on cow. Move slow, feel the whole spine.", time:40},
+  // Hamstrings & Glutes
+  {section:"Hamstrings & Glutes", name:"World's Greatest Stretch — Right", cue:"Lunge, rotate toward front leg, reach up. Hip flexor, t-spine, hamstring in one.", time:30},
+  {section:"Hamstrings & Glutes", name:"World's Greatest Stretch — Left", cue:"Lunge, rotate toward front leg, reach up. Hip flexor, t-spine, hamstring in one.", time:30},
+  {section:"Hamstrings & Glutes", name:"Standing Forward Fold", cue:"Soft knees, let your head hang heavy. Don't force it — just breathe.", time:30},
+  {section:"Hamstrings & Glutes", name:"Single Leg RDL Reach", cue:"No weight needed. Slow hinge, light touch to the floor, control the return.", time:40},
+  // Upper Body & Spine
+  {section:"Upper Body & Spine", name:"Thread the Needle", cue:"On all fours, reach one arm under and through. Feel the upper back open.", time:36},
+  {section:"Upper Body & Spine", name:"Doorway Chest Stretch", cue:"Forearm on doorframe, gently lean forward. Opens the chest from hours of driving.", time:30},
+  {section:"Upper Body & Spine", name:"Wall Slides", cue:"Back flat against wall, slide arms up and down. Resets the shoulders.", time:30},
+  // Finisher
+  {section:"Full Body Finisher", name:"Deep Squat Hold", cue:"Sink into the bottom of a bodyweight squat. Breathe, let the hips open.", time:40},
+];
+
+let idx = 0;
+let timeLeft = ROUTINE[0].time;
+let totalTime = ROUTINE[0].time;
+let timerInterval = null;
+let isRunning = false;
+let isComplete = false;
+
+const RADIUS = 84;
+const CIRC = 2 * Math.PI * RADIUS;
+
+function buildStops(){
+  const wrap = document.getElementById('routeStops');
+  wrap.innerHTML = '';
+  ROUTINE.forEach((m, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'stop';
+    dot.id = 'stop-' + i;
+    wrap.appendChild(dot);
+  });
+}
+
+function updateRoute(){
+  document.getElementById('routeLabel').textContent = `Stop ${idx+1} of ${ROUTINE.length}`;
+  document.getElementById('routeSection').textContent = ROUTINE[idx].section;
+  const pct = (idx) / (ROUTINE.length - 1) * 100;
+  document.getElementById('routeProgress').style.width = `calc((100% - 16px) * ${pct/100})`;
+  ROUTINE.forEach((m, i) => {
+    const dot = document.getElementById('stop-' + i);
+    dot.classList.remove('done','active');
+    if(i < idx) dot.classList.add('done');
+    if(i === idx) dot.classList.add('active');
+  });
+}
+
+function renderStage(){
+  if(isComplete){
+    document.getElementById('stage').innerHTML = `
+      <div class="complete">
+        <div class="complete-mark">✓</div>
+        <h2>Routine complete</h2>
+        <p>That's it — hips open, spine moving, shoulders reset. Back on the road, back on track.</p>
+        <button class="btn-main" onclick="restart()">Do it again</button>
+      </div>`;
+    return;
+  }
+
+  const m = ROUTINE[idx];
+  document.getElementById('stage').innerHTML = `
+    <div class="section-tag">${m.section}</div>
+    <div class="move-count">Move ${idx+1} of ${ROUTINE.length}</div>
+    <div class="move-name">${m.name}</div>
+    <div class="move-cue">${m.cue}</div>
+
+    <div class="timer-wrap">
+      <svg width="188" height="188" viewBox="0 0 188 188">
+        <circle class="ring-bg" cx="94" cy="94" r="${RADIUS}"></circle>
+        <circle class="ring-fg" id="ringFg" cx="94" cy="94" r="${RADIUS}"
+          stroke-dasharray="${CIRC}" stroke-dashoffset="0"></circle>
+      </svg>
+      <div class="timer-center">
+        <div class="timer-num" id="timerNum">${timeLeft}</div>
+        <div class="timer-unit">seconds</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-main" id="playBtn" onclick="toggleTimer()">${isRunning ? 'Pause' : (timeLeft === totalTime ? 'Start' : 'Resume')}</button>
+      <button class="btn-skip" onclick="nextMove()">Skip</button>
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="prevMove()" ${idx===0 ? 'disabled' : ''}>← Previous</button>
+      <button class="nav-btn" onclick="resetTimer()">Reset timer</button>
+    </div>
+  `;
+  updateRing();
+}
+
+function updateRing(){
+  const ring = document.getElementById('ringFg');
+  if(!ring) return;
+  const fraction = timeLeft / totalTime;
+  const offset = CIRC * (1 - fraction);
+  ring.style.strokeDashoffset = offset;
+  const numEl = document.getElementById('timerNum');
+  if(numEl) numEl.textContent = timeLeft;
+}
+
+function toggleTimer(){
+  if(isRunning){
+    pauseTimer();
+  } else {
+    startTimer();
+  }
+}
+
+function startTimer(){
+  isRunning = true;
+  document.getElementById('playBtn').textContent = 'Pause';
+  timerInterval = setInterval(() => {
+    timeLeft -= 1;
+    updateRing();
+    if(timeLeft <= 0){
+      clearInterval(timerInterval);
+      isRunning = false;
+      nextMove();
+    }
+  }, 1000);
+}
+
+function pauseTimer(){
+  isRunning = false;
+  clearInterval(timerInterval);
+  document.getElementById('playBtn').textContent = 'Resume';
+}
+
+function resetTimer(){
+  clearInterval(timerInterval);
+  isRunning = false;
+  timeLeft = ROUTINE[idx].time;
+  totalTime = ROUTINE[idx].time;
+  renderStage();
+}
+
+function nextMove(){
+  clearInterval(timerInterval);
+  isRunning = false;
+  if(idx < ROUTINE.length - 1){
+    idx += 1;
+    timeLeft = ROUTINE[idx].time;
+    totalTime = ROUTINE[idx].time;
+    updateRoute();
+    renderStage();
+  } else {
+    isComplete = true;
+    updateRoute();
+    renderStage();
+  }
+}
+
+function prevMove(){
+  clearInterval(timerInterval);
+  isRunning = false;
+  if(idx > 0){
+    idx -= 1;
+    timeLeft = ROUTINE[idx].time;
+    totalTime = ROUTINE[idx].time;
+    updateRoute();
+    renderStage();
+  }
+}
+
+function restart(){
+  idx = 0;
+  isComplete = false;
+  timeLeft = ROUTINE[0].time;
+  totalTime = ROUTINE[0].time;
+  updateRoute();
+  renderStage();
+}
+
+buildStops();
+updateRoute();
+renderStage();
+</script>
+
+</body>
+</html>
